@@ -1,6 +1,7 @@
 // The three kinds of level, each drawn into the play board. `end` reports a win, or that the board is stuck.
+import { beadsWon, dropBead, startBeads } from '../game/beads';
 import { dogsWon, dropDog, startDogs } from '../game/dogs';
-import { GOODS, HOMES, type DogLevel, type RoomLevel, type ShelfLevel } from '../game/levels';
+import { BEAD_COLOURS, GOODS, HOMES, type BeadLevel, type DogLevel, type RoomLevel, type ShelfLevel } from '../game/levels';
 import { putAway, roomWon, startRoom } from '../game/room';
 import { isStuck, isWon, move, parseShelves } from '../game/shelf';
 import { bowlSvg, dogSvg } from './art';
@@ -129,4 +130,36 @@ export function roomLevel(board: HTMLElement, level: RoomLevel, end: End) {
     }));
   };
   draw();
+}
+
+export function beadLevel(board: HTMLElement, level: BeadLevel, end: End) {
+  const state = startBeads(level.beads);
+  const colours = Object.keys(state.bowls);
+  board.innerHTML = `
+    <div class="bead-bowls">${colours.map((c) => `
+      <div class="bead-bowl" data-drop="beadbowl:${c}" data-colour="${c}" style="--c:${BEAD_COLOURS[c]}"><div class="bead-fill"></div></div>`).join('')}
+    </div>
+    <div class="pile"></div>`;
+  const pile = board.querySelector<HTMLElement>('.pile')!;
+  const fill = () => colours.forEach((c) => {
+    const b = state.bowls[c];
+    board.querySelector<HTMLElement>(`.bead-bowl[data-colour="${c}"] .bead-fill`)!.style.height = `${(b.in / b.of) * 100}%`;
+  });
+  pile.innerHTML = state.pile.map((b) => `
+    <span class="bead" data-id="${b.id}" data-colour="${b.colour}" style="left:${b.x * 100}%;top:${b.y * 100}%;--c:${BEAD_COLOURS[b.colour]}"></span>`).join('');
+  pile.querySelectorAll<HTMLElement>('.bead').forEach((el) => draggable(el, {
+    drop: (target) => {
+      const at = dropAt(target, 'beadbowl');
+      if (!at) return false;
+      if (!dropBead(state, Number(el.dataset.id), at[0])) { sfx.nope(); return false; }
+      el.remove();
+      sfx.pop();
+      fill();
+      const bowl = state.bowls[at[0]];
+      if (bowl.in === bowl.of) { sfx.sparkle(); target!.classList.add('done'); }
+      if (beadsWon(state)) end(true);
+      return true;
+    },
+  }));
+  fill();
 }

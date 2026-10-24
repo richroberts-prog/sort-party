@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { beadsWon, dropBead, startBeads } from '../src/game/beads';
 import { dogsWon, dropDog, startDogs } from '../src/game/dogs';
 import { COATS, GOODS, HOMES, LEVELS } from '../src/game/levels';
 import { record, Save, stars, unlocked } from '../src/game/progress';
@@ -54,8 +55,8 @@ describe('room', () => {
 });
 
 describe('levels', () => {
-  it('mixes all three types', () => {
-    expect(new Set(LEVELS.map((l) => l.type))).toEqual(new Set(['shelf', 'dogs', 'room']));
+  it('mixes all the types', () => {
+    expect(new Set(LEVELS.map((l) => l.type))).toEqual(new Set(['shelf', 'dogs', 'room', 'beads']));
   });
   LEVELS.forEach((l, i) => {
     it(`level ${i + 1} (${l.type}) can be won`, () => {
@@ -125,5 +126,25 @@ describe('shelf solver', () => {
     for (const m of path) expect(move(board, ...m).ok).toBe(true);
     expect(isWon(board)).toBe(true);
     expect(solve(parseShelves([['ABA'], ['BAB']]))).toBeNull();
+  });
+});
+
+describe('beads', () => {
+  it('fills the right bowl, shrinks the pile, refuses the wrong colour', () => {
+    const s = startBeads({ red: 2, blue: 1 });
+    expect(s.pile).toHaveLength(3);
+    const red = s.pile.find((b) => b.colour === 'red')!;
+    expect(dropBead(s, red.id, 'blue')).toBe(false);
+    expect(dropBead(s, red.id, 'red')).toBe(true);
+    expect(s.bowls.red).toEqual({ in: 1, of: 2 });
+    expect(s.pile).toHaveLength(2);
+    for (const b of [...s.pile]) dropBead(s, b.id, b.colour);
+    expect(beadsWon(s)).toBe(true);
+  });
+  it('makes exactly the beads asked for, inside the pile area', () => {
+    const s = startBeads({ red: 15, blue: 15, yellow: 15, green: 15 });
+    expect(s.pile).toHaveLength(60);
+    for (const c of ['red', 'blue', 'yellow', 'green']) expect(s.pile.filter((b) => b.colour === c)).toHaveLength(15);
+    for (const b of s.pile) { expect(b.x).toBeGreaterThan(0); expect(b.x).toBeLessThan(1); expect(b.y).toBeGreaterThan(0); expect(b.y).toBeLessThan(1); }
   });
 });

@@ -2,11 +2,11 @@
 import './style.css';
 import { LEVELS } from './game/levels';
 import { Save, stars, unlocked } from './game/progress';
-import { dogLevel, roomLevel, shelfLevel } from './ui/levels';
+import { beadLevel, dogLevel, roomLevel, shelfLevel } from './ui/levels';
 import { setMuted, sfx } from './ui/sound';
 
 const PLAYERS = ['🐶', '🐱', '🦄', '🐰', '⭐'];
-const TYPE_ICON = { shelf: '🍎', dogs: '🐕', room: '🏠' };
+const TYPE_ICON = { shelf: '🍎', dogs: '🐕', room: '🏠', beads: '🔴' };
 
 const app = document.getElementById('app')!;
 const save = new Save((() => { try { return window.localStorage; } catch { return null; } })());
@@ -122,7 +122,8 @@ function play(index: number) {
 
   if (level.type === 'shelf') shelfLevel(board, level, end);
   else if (level.type === 'dogs') dogLevel(board, level, end);
-  else roomLevel(board, level, end);
+  else if (level.type === 'room') roomLevel(board, level, end);
+  else beadLevel(board, level, end);
 }
 
 startScreen();

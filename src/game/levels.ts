@@ -4,7 +4,10 @@ import type { RoomItem } from './room';
 export type ShelfLevel = { type: 'shelf'; time: number; shelves: string[][] };
 export type DogLevel = { type: 'dogs'; time: number; line: string[] };
 export type RoomLevel = { type: 'room'; time: number; homes: { id: string; x: number }[]; items: RoomItem[] };
-export type Level = ShelfLevel | DogLevel | RoomLevel;
+export type BeadLevel = { type: 'beads'; time: number; beads: Record<string, number> };
+export type Level = ShelfLevel | DogLevel | RoomLevel | BeadLevel;
+
+export const BEAD_COLOURS: Record<string, string> = { red: '#e8453c', blue: '#3b7de8', yellow: '#f5c518', green: '#3fb950' };
 
 /** What each shelf letter looks like. */
 export const GOODS: Record<string, string> = { A: '🍎', B: '🍌', C: '🍇', D: '🍓', E: '🍩', F: '🧁', G: '🥕', H: '🍪' };
@@ -35,6 +38,8 @@ function scatter(homes: string[], each: number): RoomItem[] {
 }
 
 export const LEVELS: Level[] = [
+  // PROTOTYPE: beads first so it's quick to try.
+  { type: 'beads', time: 120, beads: { red: 20, blue: 20, yellow: 20, green: 20 } },
   { type: 'shelf', time: 60, shelves: [['AB.'], ['BAA'], ['B..']] },
   { type: 'dogs', time: 60, line: ['brown', 'white', 'black', 'white', 'brown', 'brown', 'black', 'white', 'black'] },
   { type: 'shelf', time: 120, shelves: [['D.C', '..B'], ['BC.', 'BA.'], ['.A.', 'A..'], ['D..', 'DC.']] },
